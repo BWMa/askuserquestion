@@ -9,10 +9,13 @@
     "askuserquestion",
     "index.js"
   ],
+  "scripts": {
+    "postinstall": "chmod +x askuserquestion 2>/dev/null || true"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/kirmad/askuserquestion"
   },
   "engines": {
     "node": ">=18.0.0"

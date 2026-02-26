@@ -1,0 +1,23 @@
+{
+  "questions": [
+    {
+      "question": "请选择您喜欢的编程语言？",
+      "header": "编程语言",
+      "options": [
+        {
+          "label": "Rust",
+          "description": "系统级编程语言，安全且高效"
+        },
+        {
+          "label": "Python",
+          "description": "简洁易学的通用编程语言"
+        },
+        {
+          "label": "TypeScript",
+          "description": "带类型的 JavaScript 超集"
+        }
+      ],
+      "multiSelect": false
+    }
+  ]
+}

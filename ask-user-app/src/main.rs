@@ -812,6 +812,113 @@ fn ease_out_cubic(t: f32) -> f32 {
     1.0 - (1.0 - t).powi(3)
 }
 
+fn setup_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+    
+    // Try to load CJK font from embedded resource or system fonts
+    let chinese_font_loaded = load_embedded_chinese_font(&mut fonts) 
+        || load_system_chinese_font(&mut fonts);
+    
+    if chinese_font_loaded {
+        // Set up font families with Chinese font as primary
+        fonts.families
+            .entry(egui::FontFamily::Proportional)
+            .or_default()
+            .insert(0, "NotoSansSC".to_owned());
+        
+        fonts.families
+            .entry(egui::FontFamily::Monospace)
+            .or_default()
+            .insert(0, "NotoSansSC".to_owned());
+    }
+    
+    ctx.set_fonts(fonts);
+}
+
+fn load_embedded_chinese_font(fonts: &mut egui::FontDefinitions) -> bool {
+    // Try to load from embedded assets directory
+    let font_paths = vec![
+        "../assets/NotoSansSC-Regular.otf",
+        "../assets/NotoSansSC-Regular.ttf",
+        "assets/NotoSansSC-Regular.otf",
+        "assets/NotoSansSC-Regular.ttf",
+    ];
+    
+    for font_path in font_paths {
+        if let Ok(font_data) = std::fs::read(font_path) {
+            fonts.font_data.insert(
+                "NotoSansSC".to_owned(),
+                egui::FontData::from_owned(font_data),
+            );
+            return true;
+        }
+    }
+    
+    false
+}
+
+fn load_system_chinese_font(fonts: &mut egui::FontDefinitions) -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        let system_fonts = vec![
+            r"C:\Windows\Fonts\msyh.ttc",      // Microsoft YaHei
+            r"C:\Windows\Fonts\msyhbd.ttc",    // Microsoft YaHei Bold
+            r"C:\Windows\Fonts\simsun.ttc",    // SimSun
+            r"C:\Windows\Fonts\simhei.ttf",     // SimHei
+        ];
+        
+        for font_path in system_fonts {
+            if let Ok(font_data) = std::fs::read(font_path) {
+                fonts.font_data.insert(
+                    "NotoSansSC".to_owned(),
+                    egui::FontData::from_owned(font_data),
+                );
+                return true;
+            }
+        }
+    }
+    
+    #[cfg(target_os = "macos")]
+    {
+        let system_fonts = vec![
+            "/System/Library/Fonts/PingFang.ttc",
+            "/System/Library/Fonts/Hiragino Sans GB.ttc",
+            "/System/Library/Fonts/STHeiti Light.ttc",
+        ];
+        
+        for font_path in system_fonts {
+            if let Ok(font_data) = std::fs::read(font_path) {
+                fonts.font_data.insert(
+                    "NotoSansSC".to_owned(),
+                    egui::FontData::from_owned(font_data),
+                );
+                return true;
+            }
+        }
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        let system_fonts = vec![
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+            "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",
+        ];
+        
+        for font_path in system_fonts {
+            if let Ok(font_data) = std::fs::read(font_path) {
+                fonts.font_data.insert(
+                    "NotoSansSC".to_owned(),
+                    egui::FontData::from_owned(font_data),
+                );
+                return true;
+            }
+        }
+    }
+    
+    false
+}
+
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Request continuous repainting for smooth animations
@@ -903,7 +1010,10 @@ fn main() -> eframe::Result<()> {
 
     let questions = input.questions;
 
-    eframe::run_native("ask-user", opts, Box::new(move |_| {
+    eframe::run_native("ask-user", opts, Box::new(move |cc| {
+        // Setup custom fonts for CJK support
+        setup_fonts(&cc.egui_ctx);
+        
         Ok(Box::new(App::new(questions.clone(), tx.clone())))
     }))?;
 

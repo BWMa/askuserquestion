@@ -4,6 +4,9 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::sync::mpsc;
 
+// Embed font data directly in the binary
+static NOTO_SANS_SC_FONT: &[u8] = include_bytes!("../assets/NotoSansSC-Regular.ttf");
+
 #[derive(Parser, Debug)]
 #[command(name = "ask-user")]
 struct Args {
@@ -836,27 +839,13 @@ fn setup_fonts(ctx: &egui::Context) {
 }
 
 fn load_embedded_chinese_font(fonts: &mut egui::FontDefinitions) -> bool {
-    // Try to load from embedded assets directory
-    let font_paths = vec![
-        "../assets/NotoSansSC-Regular.otf",
-        "../assets/NotoSansSC-Regular.ttf",
-        "assets/NotoSansSC-Regular.otf",
-        "assets/NotoSansSC-Regular.ttf",
-    ];
-    
-    for font_path in font_paths {
-        if let Ok(font_data) = std::fs::read(font_path) {
-            fonts.font_data.insert(
-                "NotoSansSC".to_owned(),
-                egui::FontData::from_owned(font_data),
-            );
-            return true;
-        }
-    }
-    
-    false
+    // Load embedded font data directly
+    fonts.font_data.insert(
+        "NotoSansSC".to_owned(),
+        egui::FontData::from_owned(NOTO_SANS_SC_FONT.to_vec()).into(),
+    );
+    true
 }
-
 fn load_system_chinese_font(fonts: &mut egui::FontDefinitions) -> bool {
     #[cfg(target_os = "windows")]
     {
@@ -866,12 +855,13 @@ fn load_system_chinese_font(fonts: &mut egui::FontDefinitions) -> bool {
             r"C:\Windows\Fonts\simsun.ttc",    // SimSun
             r"C:\Windows\Fonts\simhei.ttf",     // SimHei
         ];
+
         
         for font_path in system_fonts {
             if let Ok(font_data) = std::fs::read(font_path) {
                 fonts.font_data.insert(
                     "NotoSansSC".to_owned(),
-                    egui::FontData::from_owned(font_data),
+                    egui::FontData::from_owned(font_data).into(),
                 );
                 return true;
             }
